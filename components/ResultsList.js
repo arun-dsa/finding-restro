@@ -1,19 +1,45 @@
-import { FlatList, StyleSheet, View, Text } from "react-native";
+import React from "react";
+
+import {
+  FlatList,
+  StyleSheet,
+  View,
+  Text,
+  useWindowDimensions,
+} from "react-native";
+import Carousel from "react-native-reanimated-carousel";
+import Animated, { useSharedValue } from "react-native-reanimated";
+
 import ResultsDetails from "./ResultsDetails";
 
 const ResultsList = ({ title, results }) => {
+  const ref = React.useRef(null);
+  const { width } = useWindowDimensions();
+
   const renderListItem = ({ item }) => {
-    return <ResultsDetails item={item} />;
+    return (
+      <Animated.View style={{ flex: 1 }}>
+        <ResultsDetails item={item} />
+      </Animated.View>
+    );
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
+      <Carousel
+        ref={ref}
+        loop={false}
+        width={width}
+        height={width / 2}
+        snapEnabled={true}
         data={results}
-        keyExtractor={(result) => result.id}
+        mode="parallax"
+        modeConfig={{
+          parallaxScrollingScale: 0.9,
+          parallaxScrollingOffset: 50,
+        }}
+        scrollAnimationDuration={1000}
         renderItem={renderListItem}
       />
     </View>
