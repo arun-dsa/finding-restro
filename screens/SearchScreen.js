@@ -6,12 +6,22 @@ import ResultsList from "../components/ResultsList";
 
 const SearchScreen = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState();
   const [error, setError] = useState("");
+
+  const filterResultsByPrice = (price) => {
+    return results?.filter((result) => result.price === price) || [];
+  };
+
+  const costEffective = filterResultsByPrice("$");
+  const bitPrice = filterResultsByPrice("$$");
+  const bigPrice = filterResultsByPrice("$$$");
 
   const onTermSubmit = async () => {
     //console.log("calling - ", searchTerm);
     try {
+      setLoading(true);
       const response = await yelp.get("/search", {
         params: {
           limit: 50,
@@ -20,15 +30,13 @@ const SearchScreen = () => {
         },
       });
       //console.log(response);
-      setResults(response?.data?.businesses);
+      setResults(response?.data?.businesses || []);
     } catch (e) {
       setError("Something went wrong. Please try again.");
       console.log(e);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const filterResultsByPrice = (price) => {
-    return results?.filter((result) => result.price === price) || [];
   };
 
   return (
@@ -40,21 +48,19 @@ const SearchScreen = () => {
       />
       <View style={styles.searchResults}>
         {error && <Text>{error}</Text>}
-
-        <ScrollView>
-          <ResultsList
-            title="Cost Effect"
-            results={filterResultsByPrice("$")}
-          />
-          <ResultsList
-            title="Bit Pricer"
-            results={filterResultsByPrice("$$")}
-          />
-          <ResultsList
-            title="Big Spender"
-            results={filterResultsByPrice("$$$")}
-          />
-        </ScrollView>
+        {results?.length > 0 && (
+          <ScrollView>
+            {costEffective?.length > 0 && (
+              <ResultsList title="Cost Effect" results={costEffective} />
+            )}
+            {bitPrice?.length > 0 && (
+              <ResultsList title="Bit Pricer" results={bitPrice} />
+            )}
+            {bigPrice?.length > 0 && (
+              <ResultsList title="Big Spender" results={bigPrice} />
+            )}
+          </ScrollView>
+        )}
       </View>
     </View>
   );
@@ -68,7 +74,6 @@ const styles = StyleSheet.create({
   },
   searchResults: {
     flex: 1,
-    padding: 15,
   },
 });
 
